@@ -6,6 +6,8 @@ keywords = ["wasm", "wasm-oj"]
 categories = ["command-line-utilities"]
 readme = "README.md"
 license = "MIT"
+homepage = "https://github.com/wasm-oj/wark"
+repository = "https://github.com/wasm-oj/wark"
 edition = "2021"
 build = "build.rs"
 
