@@ -18,7 +18,7 @@ pub fn cli() -> Command {
                 .args(&[
                     arg!(-m --memory <memory> "memory limit in MB")
                         .default_value("512")
-                        .value_parser(value_parser!(u32).range(1..=4096)),
+                        .value_parser(value_parser!(u32).range(1..)),
                     arg!(-c --cost <cost> "computational cost limit in instruction count")
                         .default_value("1000000000")
                         .value_parser(value_parser!(u64).range(1..)),

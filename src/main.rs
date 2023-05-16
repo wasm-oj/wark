@@ -22,7 +22,7 @@ async fn main() {
         Some(("run", args)) => {
             let mem: u32 = *args
                 .get_one("memory")
-                .expect("memory limit should be in range 1..=4096");
+                .expect("memory limit should be in range 1..");
             let cost: u64 = *args
                 .get_one("cost")
                 .expect("cost limit should be in range 1..");
