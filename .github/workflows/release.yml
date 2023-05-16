@@ -27,27 +27,27 @@ jobs:
                     - build: linux-x64
                       os: ubuntu-latest
                       target: x86_64-unknown-linux-gnu
-                      artifact_name: "compilet-linux-amd64"
+                      artifact_name: "wark-linux-amd64"
                     - build: linux-arm64
                       os: ubuntu-latest
                       target: aarch64-unknown-linux-gnu
-                      artifact_name: "compilet-linux-arm64"
+                      artifact_name: "wark-linux-arm64"
                     - build: macos-x64
                       os: macos-latest
                       target: x86_64-apple-darwin
-                      artifact_name: "compilet-darwin-amd64"
+                      artifact_name: "wark-darwin-amd64"
                     - build: macos-arm64
                       os: macos-latest
                       target: aarch64-apple-darwin
-                      artifact_name: "compilet-darwin-arm64"
+                      artifact_name: "wark-darwin-arm64"
                     - build: windows-x64
                       os: windows-latest
                       target: x86_64-pc-windows-msvc
-                      artifact_name: "compilet-windows-amd64"
+                      artifact_name: "wark-windows-amd64"
                     - build: linux-musl-x64
                       os: ubuntu-latest
                       target: x86_64-unknown-linux-musl
-                      artifact_name: "compilet-linux-musl-amd64"
+                      artifact_name: "wark-linux-musl-amd64"
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
@@ -74,7 +74,7 @@ jobs:
               if: matrix.os != 'windows-latest'
               with:
                   repo_token: ${{ secrets.GITHUB_TOKEN }}
-                  file: target/${{ matrix.target }}/release/compilet
+                  file: target/${{ matrix.target }}/release/wark
                   asset_name: ${{ matrix.artifact_name }}
                   tag: ${{ github.ref }}
 
@@ -83,6 +83,6 @@ jobs:
               if: matrix.os == 'windows-latest'
               with:
                   repo_token: ${{ secrets.GITHUB_TOKEN }}
-                  file: target/${{ matrix.target }}/release/compilet.exe
+                  file: target/${{ matrix.target }}/release/wark.exe
                   asset_name: ${{ matrix.artifact_name }}.exe
                   tag: ${{ github.ref }}
