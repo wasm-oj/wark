@@ -5,6 +5,7 @@ use rocket::Build;
 use rocket::Config;
 use rocket::Rocket;
 
+use crate::config::*;
 use crate::server::execute;
 use crate::server::jwt;
 
@@ -37,10 +38,7 @@ pub fn rocket() -> Rocket<Build> {
     rocket::build()
         .configure(Config {
             address: Ipv4Addr::new(0, 0, 0, 0).into(),
-            port: std::env::var("PORT")
-                .unwrap_or_else(|_| "33000".to_string())
-                .parse()
-                .unwrap(),
+            port: server_port(),
             ..Config::default()
         })
         .mount("/", routes![index, info, jwt::validate, execute::execute])

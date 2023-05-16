@@ -1,4 +1,5 @@
 mod cli;
+mod config;
 mod cost;
 mod memory;
 mod read;

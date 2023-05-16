@@ -1,3 +1,4 @@
+use crate::config::*;
 use crate::run;
 use crate::server::jwt;
 use base64::{engine::general_purpose, Engine as _};
@@ -50,7 +51,7 @@ pub async fn execute(
         }
     };
 
-    if submission.cost > 1000000000 {
+    if submission.cost > max_cost() {
         return Json(ExecutionResult {
             success: false,
             cost: None,
@@ -61,7 +62,7 @@ pub async fn execute(
         });
     }
 
-    if submission.memory > 1024 {
+    if submission.memory > max_memory() {
         return Json(ExecutionResult {
             success: false,
             cost: None,
