@@ -1,0 +1,30 @@
+[package]
+name = "wark"
+description = "WebAssembly RunKit."
+version = "0.1.0"
+keywords = ["wasm", "wasm-oj"]
+categories = ["command-line-utilities"]
+readme = "README.md"
+license = "MIT"
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "wark"
+path = "src/main.rs"
+
+[dependencies]
+base64 = "0.21.0"
+clap = { version = "4.2.7", features = ["derive", "string"] }
+jsonwebtoken = "8.3.0"
+rocket = { version = "0.5.0-rc.3", features = ["json"] }
+serde = "1.0.163"
+serde_json = "1.0.96"
+wasmer = "3.3.0"
+wasmer-types = "3.3.0"
+wasmer-wasix = "0.4.0"
+
+[build-dependencies]
+vergen = { version = "8.1.3", features = ["build", "cargo", "git", "gitcl", "rustc", "si"] }

@@ -1,0 +1,14 @@
+name: wark
+version: "3.8"
+
+services:
+    wark:
+        image: jacoblincool/wark
+        build:
+            context: .
+            target: runtime
+        command: server
+        ports:
+            - "${PORT}:${PORT}"
+        env_file:
+            - .env
