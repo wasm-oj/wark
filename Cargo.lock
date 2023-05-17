@@ -3273,7 +3273,7 @@ dependencies = [
 
 [[package]]
 name = "wark"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "async-compression",
  "base64 0.21.0",
