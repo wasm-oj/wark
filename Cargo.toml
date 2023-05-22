@@ -17,6 +17,10 @@ build = "build.rs"
 name = "wark"
 path = "src/main.rs"
 
+[lib]
+name = "wark"
+path = "src/lib.rs"
+
 [dependencies]
 async-compression = { version = "0.4.0", features = ["tokio", "gzip"] }
 base64 = "0.21.0"

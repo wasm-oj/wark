@@ -1,18 +1,8 @@
-mod cli;
-mod config;
-mod cost;
-mod memory;
-mod read;
-mod run;
-mod server;
-
+use wark::*;
 use serde_json::json;
 use std::path::PathBuf;
 use std::{fs, process, thread};
 use std::{io, io::prelude::*};
-
-#[macro_use]
-extern crate rocket;
 
 #[rocket::main]
 async fn main() {

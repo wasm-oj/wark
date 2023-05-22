@@ -34,7 +34,7 @@ pub enum RunError {
     IOError(String),
 }
 
-pub(crate) fn run(
+pub fn run(
     wasm: Cow<'_, [u8]>,
     budget: u64,
     mem: u32,
