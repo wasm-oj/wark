@@ -5,6 +5,7 @@ use reqwest::Client;
 use reqwest_middleware::ClientBuilder;
 use serde::{Deserialize, Serialize};
 use sha256::digest;
+use std::env;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FastIOJudgeSpec {
@@ -54,13 +55,42 @@ impl Judger for FastIOJudgeSpec {
         }
 
         if let Some(input_url) = &self.input_url {
-            let client = ClientBuilder::new(Client::new())
-                .with(Cache(HttpCache {
-                    mode: CacheMode::Default,
-                    manager: CACacheManager::default(),
-                    options: None,
-                }))
-                .build();
+            let mut client = ClientBuilder::new(Client::new());
+
+            match env::var("REMOTE_INPUT_CACHE") {
+                Ok(val) => match val.as_str() {
+                    "true" | "1" => {
+                        client = client.with(Cache(HttpCache {
+                            mode: CacheMode::Default,
+                            manager: CACacheManager::default(),
+                            options: None,
+                        }));
+                    }
+                    "false" | "0" => {
+                        client = client.with(Cache(HttpCache {
+                            mode: CacheMode::NoStore,
+                            manager: CACacheManager::default(),
+                            options: None,
+                        }));
+                    }
+                    _ => {
+                        client = client.with(Cache(HttpCache {
+                            mode: CacheMode::NoStore,
+                            manager: CACacheManager::default(),
+                            options: None,
+                        }));
+                    }
+                },
+                Err(_) => {
+                    client = client.with(Cache(HttpCache {
+                        mode: CacheMode::NoStore,
+                        manager: CACacheManager::default(),
+                        options: None,
+                    }));
+                }
+            }
+
+            let client = client.build();
 
             let mut req = client.get(input_url);
             if let Some(auth) = &self.input_auth {
