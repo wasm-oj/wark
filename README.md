@@ -16,6 +16,8 @@ You can use WARK as a Command-Line Interface (CLI) tool or as a web service, dep
       - [Options](#options)
       - [IO](#io)
     - [Web Service](#web-service)
+      - [Run](#run)
+      - [Judge](#judge)
   - [Cost Table](#cost-table)
 
 ## Installation
@@ -76,13 +78,15 @@ wark server
 
 > You can use the `PORT` environment variable to specify the port number. The default port number is `33000`.
 
+#### Run
+
 To run a WebAssembly module, send a `POST` request with a JSON object in the body containing the following fields:
 
 ```sh
 curl 'http://127.0.0.1:33000/run' \
-  --header 'Content-Type: application/json' \
-  --header 'Authorization: Bearer <JWT_TOKEN>' \
-  --data '{
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <JWT_TOKEN>' \
+--data '{
     "cost": 10000000,
     "memory": 512,
     "input": "I am stdin input",
@@ -92,16 +96,103 @@ curl 'http://127.0.0.1:33000/run' \
 
 The server will respond with a JSON object containing the following fields:
 
-```sh
+```json
 {
-  "success": true,
-  "cost": 1234567,
-  "memory": 345,
-  "stdout": "I am stdout output",
-  "stderr": "I am stderr output",
-  "message": "I am message"
+    "success": true,
+    "cost": 1234567,
+    "memory": 345,
+    "stdout": "I am stdout output",
+    "stderr": "I am stderr output",
+    "message": "I am message"
 }
 ```
+
+#### Judge
+
+To run the program in judge mode, send a `POST` request with a JSON object in the body containing the following fields:
+
+```sh
+curl --location 'http://127.0.0.1:33000/judge' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <JWT_TOKEN>' \
+--data '{
+    "wasm": "<base64 encoded wasm module>",
+    "specs": [
+        {
+            "judger": "IOFast",
+            "input": "Jacob",
+            "output_hash": "128783a055c41c0a79ad7376e8e22587cdca53ed1f9c47c46d02a7768992b325",
+            "cost": 1000000000,
+            "memory": 1024
+        },
+        {
+            "judger": "IOFast",
+            "input": "WOJ",
+            "output_hash": "75787b1df461d0c48f0229a7769cbcc37c7d96d6613f825b77e76afdd1eb790a",
+            "cost": 1000000000,
+            "memory": 1024
+        },
+        {
+            "judger": "IOFast",
+            "input": "WASM OJ Wonderland",
+            "output_hash": "8f02d3283b88d16766cb287090bf59135c873e9175759b73f96ffe674440ff21",
+            "cost": 1000000000,
+            "memory": 1024
+        },
+        {
+            "judger": "IOFast",
+            "input_url": "https://link-to-input.file/input.txt",
+            "output_hash": "87c215c4afeaf7ff7684ef90fd44649b2051bc4c68cf58bdad402fa304487b8w",
+            "cost": 1000000000,
+            "memory": 1024
+        }
+    ]
+}'
+```
+
+The server will respond with a JSON object containing the following fields:
+
+```json
+{
+    "results": [
+        {
+            "success": true,
+            "cost": 3776,
+            "memory": 1,
+            "message": null,
+            "exception": null
+        },
+        {
+            "success": true,
+            "cost": 3692,
+            "memory": 1,
+            "message": null,
+            "exception": null
+        },
+        {
+            "success": true,
+            "cost": 4421,
+            "memory": 1,
+            "message": null,
+            "exception": null
+        },
+        {
+            "success": false,
+            "cost": 5848,
+            "memory": 1,
+            "message": null,
+            "exception": {
+                "type": "Output",
+                "reason": "Output hash mismatch. Expected 87c215c4afeaf7ff7684ef90fd44649b2051bc4c68cf58bdad402fa304487b8w, got 87c215c4afeaf7ff7684ef90fd44649b2051bc4c68cf58bdad402fa304487b8c"
+            }
+        }
+    ]
+}
+```
+
+Currently, the server only supports the `IOFast` judger, which is a simple judger that compares the trimmed output of the program with the `output_hash` field. If the output of the program matches the `output_hash` field, indicating that the program has passed the test case. Otherwise, an `Output` exception will be returned.
+
+> Remote inputs will be cached in the `http-cache` directory, the TTL of each cache is respecting the `Cache-Control` header of the response.
 
 ## Cost Table
 
