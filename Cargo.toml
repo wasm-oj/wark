@@ -28,7 +28,7 @@ base64 = "0.21.0"
 clap = { version = "4.2.7", features = ["derive", "string"] }
 http-cache-reqwest = "0.9.0"
 jsonwebtoken = "8.3.0"
-reqwest = "0.11.18"
+reqwest = { version = "0.11.18", default-features = false, features = ["rustls", "tokio-rustls"] }
 reqwest-middleware = "0.2.2"
 rocket = { version = "0.5.0-rc.3", features = ["json"] }
 serde = "1.0.163"
@@ -40,3 +40,6 @@ wasmer-wasix = "0.4.0"
 
 [build-dependencies]
 vergen = { version = "8.1.3", features = ["build", "cargo", "git", "gitcl", "rustc", "si"] }
+
+[patch.crates-io]
+reflink = { git = "https://github.com/JacobLinCool/reflink.git" }
