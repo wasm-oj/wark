@@ -4,7 +4,7 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache musl-dev git
+    apk add --no-cache musl-dev git pkgconfig openssl-dev
 
 RUN mkdir /tmp/tempproj && \
     cd /tmp/tempproj && \
@@ -21,6 +21,8 @@ RUN cargo build --release
 FROM alpine as runtime
 
 WORKDIR /app
+
+RUN apk add --no-cache openssl
 
 COPY --from=builder /app/target/release/wark /app/wark
 
