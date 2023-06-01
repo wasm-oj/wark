@@ -16,3 +16,4 @@ target/
 **/.env
 **/.DS_Store
 wasm/*.wasm
+http-cacache

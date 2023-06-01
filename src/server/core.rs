@@ -1,14 +1,13 @@
-use std::net::Ipv4Addr;
-
+use crate::config::*;
+use crate::server::compress;
+use crate::server::execute;
+use crate::server::judge;
+use crate::server::jwt;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::Build;
 use rocket::Config;
 use rocket::Rocket;
-
-use crate::config::*;
-use crate::server::compress;
-use crate::server::execute;
-use crate::server::jwt;
+use std::net::Ipv4Addr;
 
 #[get("/")]
 fn index() -> &'static str {
@@ -42,7 +41,10 @@ pub fn rocket() -> Rocket<Build> {
             port: server_port(),
             ..Config::default()
         })
-        .mount("/", routes![index, info, jwt::validate, execute::execute]);
+        .mount(
+            "/",
+            routes![index, info, jwt::validate, execute::execute, judge::judge],
+        );
 
     if cfg!(debug_assertions) {
         server

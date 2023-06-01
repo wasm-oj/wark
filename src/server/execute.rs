@@ -2,12 +2,11 @@ use crate::config::*;
 use crate::run;
 use crate::server::jwt;
 use base64::{engine::general_purpose, Engine as _};
-use std::{borrow::Cow, thread};
-
 use rocket::serde::{
     json::{Error, Json},
     Deserialize, Serialize,
 };
+use std::{borrow::Cow, thread};
 
 // Define a struct to represent incoming code submissions
 #[derive(Debug, Serialize, Deserialize)]
