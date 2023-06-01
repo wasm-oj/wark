@@ -84,7 +84,16 @@ impl Judger for FastIOJudgeSpec {
     }
 
     async fn judge_output(&self, _input: &Input, output: &Output) -> Result<(), String> {
-        let output_hash = digest(output.stdout.trim().as_bytes());
+        let output_hash = digest(
+            output
+                .stdout
+                .lines()
+                .map(|l| l.trim_end())
+                .collect::<Vec<_>>()
+                .join("\n")
+                .trim()
+                .as_bytes(),
+        );
 
         if output_hash != self.output_hash {
             return Err(format!(
