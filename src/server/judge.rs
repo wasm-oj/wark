@@ -77,9 +77,34 @@ pub async fn judge(
         }
     };
 
+    if let Some(callback) = submission.callback {
+        task::spawn(async move {
+            let result = run_specs(wasm, submission.specs).await;
+            let client = Client::new();
+            match client.post(&callback).json(&result).send().await {
+                Ok(_) => {
+                    println!("Callback sent successfully. ({})", &callback);
+                }
+                Err(e) => {
+                    println!("Error sending callback. {} ({})", e, &callback);
+                }
+            }
+        });
+
+        Json(JudgeResults {
+            results: vec![],
+            error: None,
+        })
+    } else {
+        let result = run_specs(wasm, submission.specs).await;
+        Json(result)
+    }
+}
+
+pub async fn run_specs(wasm: Box<[u8]>, specs: Vec<JudgeSpec>) -> JudgeResults {
     let mut tasks = Vec::new();
 
-    for spec in submission.specs {
+    for spec in specs {
         let check = spec.check_spec().await;
         if let Err(e) = check {
             let task = task::spawn_local(async move { (Err(e), Err("".to_string()), None) });
@@ -188,22 +213,8 @@ pub async fn judge(
         }
     }
 
-    let result = JudgeResults {
+    JudgeResults {
         results,
         error: None,
-    };
-
-    if let Some(callback) = submission.callback {
-        let client = Client::new();
-        match client.post(&callback).json(&result).send().await {
-            Ok(_) => {
-                println!("Callback sent successfully. ({})", &callback);
-            }
-            Err(e) => {
-                println!("Error sending callback. {} ({})", e, &callback);
-            }
-        }
     }
-
-    Json(result)
 }
