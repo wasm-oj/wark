@@ -3,6 +3,8 @@ use serde_json::json;
 use std::path::PathBuf;
 use std::{fs, process};
 use std::{io, io::prelude::*};
+use tracing::Level;
+use tracing_subscriber::FmtSubscriber;
 use wark::*;
 
 #[rocket::main]
@@ -71,6 +73,16 @@ async fn main() {
             }
         }
         Some(("server", _)) => {
+            match FmtSubscriber::builder()
+                .with_max_level(Level::INFO)
+                .try_init()
+            {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Failed to initialize tracing: {}", e);
+                    process::exit(1);
+                }
+            }
             let _ = server::core::rocket().launch().await;
         }
         Some(_) | None => {

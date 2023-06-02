@@ -54,9 +54,11 @@ pub async fn judge(
     _token: jwt::Token,
     submission: Result<Json<JudgeSubmission>, Error<'_>>,
 ) -> Json<JudgeResults> {
+    info!("Received judge request");
     let submission = match submission {
         Ok(submission) => submission.into_inner(),
         Err(e) => {
+            info!("Bad judge request: {}", e);
             return Json(JudgeResults {
                 results: vec![],
                 error: Some(format!("Invalid submission. Error parsing JSON: {}", e)),
@@ -67,6 +69,7 @@ pub async fn judge(
     let wasm = match general_purpose::STANDARD.decode(submission.wasm.as_bytes()) {
         Ok(wasm) => wasm.into_boxed_slice(),
         Err(_) => {
+            info!("Bad judge request: invalid base64 encoding");
             return Json(JudgeResults {
                 results: vec![],
                 error: Some("Invalid submission. Error decoding base64.".to_string()),
@@ -79,14 +82,14 @@ pub async fn judge(
     for spec in submission.specs {
         let check = spec.check_spec().await;
         if let Err(e) = check {
-            let task = task::spawn(async move { (Err(e), Err("".to_string()), None) });
+            let task = task::spawn_local(async move { (Err(e), Err("".to_string()), None) });
             tasks.push(task);
             continue;
         }
 
         let input = spec.make_input().await;
         if let Err(e) = input {
-            let task = task::spawn(async move { (Ok(spec), Err(e), None) });
+            let task = task::spawn_local(async move { (Ok(spec), Err(e), None) });
             tasks.push(task);
             continue;
         }
@@ -97,7 +100,9 @@ pub async fn judge(
         let wasm = wasm.clone();
 
         let task = task::spawn_blocking(move || {
+            info!("Running judge for spec: {:?}", spec);
             let result = run::run(wasm, cost_limit, memory_limit, stdin);
+            info!("Judge finished for spec: {:?}", spec);
             (Ok(spec), Ok(input), Some(result))
         });
 

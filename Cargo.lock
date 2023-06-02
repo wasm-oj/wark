@@ -3739,6 +3739,8 @@ dependencies = [
  "serde",
  "serde_json",
  "sha256",
+ "tracing",
+ "tracing-subscriber",
  "vergen",
  "wasmer",
  "wasmer-types",
