@@ -9,7 +9,6 @@ use rocket::serde::{
     Deserialize, Serialize,
 };
 use rocket::tokio::task;
-use std::borrow::Cow;
 use std::fmt::Debug;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -98,7 +97,7 @@ pub async fn judge(
         let wasm = wasm.clone();
 
         let task = task::spawn_blocking(move || {
-            let result = run::run(Cow::Owned(wasm.to_vec()), cost_limit, memory_limit, stdin);
+            let result = run::run(wasm, cost_limit, memory_limit, stdin);
             (Ok(spec), Ok(input), Some(result))
         });
 

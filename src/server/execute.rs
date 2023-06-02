@@ -7,7 +7,6 @@ use rocket::serde::{
     Deserialize, Serialize,
 };
 use rocket::tokio::task;
-use std::borrow::Cow;
 
 // Define a struct to represent incoming code submissions
 #[derive(Debug, Serialize, Deserialize)]
@@ -88,12 +87,7 @@ pub async fn execute(
     };
 
     let handle = task::spawn_blocking(move || {
-        run::run(
-            Cow::Owned(wasm.to_vec()),
-            submission.cost,
-            submission.memory,
-            submission.input,
-        )
+        run::run(wasm, submission.cost, submission.memory, submission.input)
     });
 
     let result = handle.await.unwrap();

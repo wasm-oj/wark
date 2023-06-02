@@ -40,7 +40,7 @@ async fn main() {
                 _ => fs::read_to_string(input).expect("Failed to read input file"),
             };
 
-            let handle = task::spawn_blocking(move || run::run(wasm, cost, mem, input.to_owned()));
+            let handle = task::spawn_blocking(move || run::run(wasm, cost, mem, input));
 
             let result = match handle.await.unwrap() {
                 Ok(result) => result,

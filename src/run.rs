@@ -1,5 +1,5 @@
 use crate::cost::{get_remaining_points, Cost, CostPoints};
-use std::borrow::Cow;
+use crate::memory::LimitingTunables;
 use std::io::{Read, Write};
 use std::sync::Arc;
 use wasmer::{BaseTunables, CompilerConfig, Engine, Memory, Pages, Target};
@@ -8,8 +8,6 @@ use wasmer::{Module, Store};
 use wasmer_types::TrapCode;
 use wasmer_wasix::wasmer_wasix_types::wasi::ExitCode;
 use wasmer_wasix::{wasmer_wasix_types, Pipe, WasiEnv, WasiError};
-
-use crate::memory::LimitingTunables;
 
 #[derive(Debug)]
 pub struct RunResult {
@@ -34,12 +32,7 @@ pub enum RunError {
     IOError(String),
 }
 
-pub fn run(
-    wasm: Cow<'_, [u8]>,
-    budget: u64,
-    mem: u32,
-    input: String,
-) -> Result<RunResult, RunError> {
+pub fn run(wasm: Box<[u8]>, budget: u64, mem: u32, input: String) -> Result<RunResult, RunError> {
     let metering = Arc::new(Cost::new(budget));
     let mut compiler = Cranelift::default();
     compiler.push_middleware(metering.clone());
