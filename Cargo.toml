@@ -26,7 +26,7 @@ async-compression = { version = "0.4.0", features = ["tokio", "gzip"] }
 async-trait = "0.1.68"
 base64 = "0.21.0"
 clap = { version = "4.2.7", features = ["derive", "string"] }
-http-cache-reqwest = "0.9.0"
+http-cache-reqwest = { version = "0.9.0", features = ["manager-cacache", "manager-moka"] }
 jsonwebtoken = "8.3.0"
 reqwest = { version = "0.11.18", default-features = false, features = ["rustls", "tokio-rustls", "json"] }
 reqwest-middleware = "0.2.2"

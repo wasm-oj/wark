@@ -1,6 +1,6 @@
 use super::{Input, Judger, Output};
 use async_trait::async_trait;
-use http_cache_reqwest::{CACacheManager, Cache, CacheMode, HttpCache};
+use http_cache_reqwest::{CACacheManager, Cache, CacheMode, HttpCache, MokaManager};
 use reqwest::Client;
 use reqwest_middleware::ClientBuilder;
 use serde::{Deserialize, Serialize};
@@ -59,32 +59,26 @@ impl Judger for FastIOJudgeSpec {
 
             match env::var("REMOTE_INPUT_CACHE") {
                 Ok(val) => match val.as_str() {
-                    "true" | "1" => {
+                    "true" | "1" | "cacache" => {
                         client = client.with(Cache(HttpCache {
                             mode: CacheMode::Default,
                             manager: CACacheManager::default(),
                             options: None,
                         }));
                     }
-                    "false" | "0" => {
+                    "mem" | "moka" => {
                         client = client.with(Cache(HttpCache {
-                            mode: CacheMode::NoStore,
-                            manager: CACacheManager::default(),
+                            mode: CacheMode::Default,
+                            manager: MokaManager::default(),
                             options: None,
                         }));
                     }
-                    _ => {
-                        client = client.with(Cache(HttpCache {
-                            mode: CacheMode::NoStore,
-                            manager: CACacheManager::default(),
-                            options: None,
-                        }));
-                    }
+                    _ => {}
                 },
                 Err(_) => {
                     client = client.with(Cache(HttpCache {
-                        mode: CacheMode::NoStore,
-                        manager: CACacheManager::default(),
+                        mode: CacheMode::Default,
+                        manager: MokaManager::default(),
                         options: None,
                     }));
                 }
@@ -97,6 +91,7 @@ impl Judger for FastIOJudgeSpec {
                 req = req.header("Authorization", format!("Bearer {}", auth));
             }
 
+            info!("Fetching input from {}", input_url);
             let res = req
                 .send()
                 .await
@@ -106,6 +101,7 @@ impl Judger for FastIOJudgeSpec {
                 .text()
                 .await
                 .map_err(|e| format!("Error reading input: {}", e))?;
+            info!("Fetched input from {}", input_url);
 
             return Ok(Input { stdin: input });
         }
