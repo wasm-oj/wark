@@ -75,11 +75,41 @@ pub async fn judge(
         }
     };
 
-    let mut results = Vec::new();
+    let mut tasks = Vec::new();
 
     for spec in submission.specs {
         let check = spec.check_spec().await;
         if let Err(e) = check {
+            let task = task::spawn(async move { (Err(e), Err("".to_string()), None) });
+            tasks.push(task);
+            continue;
+        }
+
+        let input = spec.make_input().await;
+        if let Err(e) = input {
+            let task = task::spawn(async move { (Ok(spec), Err(e), None) });
+            tasks.push(task);
+            continue;
+        }
+        let input = input.unwrap();
+        let stdin = input.stdin.clone();
+
+        let (cost_limit, memory_limit) = spec.limits();
+        let wasm = wasm.clone();
+
+        let task = task::spawn_blocking(move || {
+            let result = run::run(Cow::Owned(wasm.to_vec()), cost_limit, memory_limit, stdin);
+            (Ok(spec), Ok(input), Some(result))
+        });
+
+        tasks.push(task);
+    }
+
+    let mut results = Vec::new();
+
+    for task in tasks {
+        let (spec, input, result) = task.await.unwrap();
+        if let Err(e) = spec {
             results.push(JudgeResult {
                 success: false,
                 cost: None,
@@ -89,8 +119,8 @@ pub async fn judge(
             });
             continue;
         }
+        let spec = spec.unwrap();
 
-        let input = spec.make_input().await;
         if let Err(e) = input {
             results.push(JudgeResult {
                 success: false,
@@ -102,16 +132,8 @@ pub async fn judge(
             continue;
         }
         let input = input.unwrap();
-        let stdin = input.stdin.clone();
 
-        let (cost_limit, memory_limit) = spec.limits();
-        let wasm = wasm.clone();
-
-        let handle = task::spawn_blocking(move || {
-            run::run(Cow::Owned(wasm.to_vec()), cost_limit, memory_limit, stdin)
-        });
-
-        let result = handle.await.unwrap();
+        let result = result.unwrap();
 
         match result {
             Ok(result) => {
