@@ -6,7 +6,8 @@ use rocket::serde::{
     json::{Error, Json},
     Deserialize, Serialize,
 };
-use std::{borrow::Cow, thread};
+use rocket::tokio::task;
+use std::borrow::Cow;
 
 // Define a struct to represent incoming code submissions
 #[derive(Debug, Serialize, Deserialize)]
@@ -86,8 +87,7 @@ pub async fn execute(
         }
     };
 
-    // run in a separate thread to avoid blocking the main thread
-    let handle = thread::spawn(move || {
+    let handle = task::spawn_blocking(move || {
         run::run(
             Cow::Owned(wasm.to_vec()),
             submission.cost,
@@ -96,7 +96,7 @@ pub async fn execute(
         )
     });
 
-    let result = handle.join().unwrap();
+    let result = handle.await.unwrap();
 
     match result {
         Ok(result) => {

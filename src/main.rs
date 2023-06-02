@@ -1,6 +1,7 @@
+use rocket::tokio::task;
 use serde_json::json;
 use std::path::PathBuf;
-use std::{fs, process, thread};
+use std::{fs, process};
 use std::{io, io::prelude::*};
 use wark::*;
 
@@ -39,9 +40,9 @@ async fn main() {
                 _ => fs::read_to_string(input).expect("Failed to read input file"),
             };
 
-            let handle = thread::spawn(move || run::run(wasm, cost, mem, input.to_owned()));
+            let handle = task::spawn_blocking(move || run::run(wasm, cost, mem, input.to_owned()));
 
-            let result = match handle.join().unwrap() {
+            let result = match handle.await.unwrap() {
                 Ok(result) => result,
                 Err(e) => {
                     eprintln!("{:?}", e);

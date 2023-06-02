@@ -3,19 +3,24 @@ use crate::run;
 use crate::server::jwt;
 use base64::engine::general_purpose;
 use base64::Engine;
+use reqwest::Client;
 use rocket::serde::{
     json::{Error, Json},
     Deserialize, Serialize,
 };
+use rocket::tokio::task;
 use std::borrow::Cow;
 use std::fmt::Debug;
-use std::thread;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct JudgeSubmission {
+    /// The base64-encoded WebAssembly binary
     wasm: String,
+    /// Judge specifications
     specs: Vec<JudgeSpec>,
+    /// Callback URL to send the results to (optional)
+    callback: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -42,6 +47,7 @@ pub struct JudgeResult {
 #[serde(crate = "rocket::serde")]
 pub struct JudgeResults {
     results: Vec<JudgeResult>,
+    error: Option<String>,
 }
 
 #[post("/judge", format = "json", data = "<submission>")]
@@ -52,15 +58,9 @@ pub async fn judge(
     let submission = match submission {
         Ok(submission) => submission.into_inner(),
         Err(e) => {
-            let message = format!("Invalid submission. Error parsing JSON: {}", e);
             return Json(JudgeResults {
-                results: vec![JudgeResult {
-                    success: false,
-                    cost: None,
-                    memory: None,
-                    message: Some(message),
-                    exception: None,
-                }],
+                results: vec![],
+                error: Some(format!("Invalid submission. Error parsing JSON: {}", e)),
             });
         }
     };
@@ -69,13 +69,8 @@ pub async fn judge(
         Ok(wasm) => wasm.into_boxed_slice(),
         Err(_) => {
             return Json(JudgeResults {
-                results: vec![JudgeResult {
-                    success: false,
-                    cost: None,
-                    memory: None,
-                    message: Some("Invalid submission. Error decoding base64.".to_string()),
-                    exception: None,
-                }],
+                results: vec![],
+                error: Some("Invalid submission. Error decoding base64.".to_string()),
             });
         }
     };
@@ -112,11 +107,11 @@ pub async fn judge(
         let (cost_limit, memory_limit) = spec.limits();
         let wasm = wasm.clone();
 
-        let handle = thread::spawn(move || {
+        let handle = task::spawn_blocking(move || {
             run::run(Cow::Owned(wasm.to_vec()), cost_limit, memory_limit, stdin)
         });
 
-        let result = handle.join().unwrap();
+        let result = handle.await.unwrap();
 
         match result {
             Ok(result) => {
@@ -167,5 +162,22 @@ pub async fn judge(
         }
     }
 
-    Json(JudgeResults { results })
+    let result = JudgeResults {
+        results,
+        error: None,
+    };
+
+    if let Some(callback) = submission.callback {
+        let client = Client::new();
+        match client.post(&callback).json(&result).send().await {
+            Ok(_) => {
+                println!("Callback sent successfully. ({})", &callback);
+            }
+            Err(e) => {
+                println!("Error sending callback. {} ({})", e, &callback);
+            }
+        }
+    }
+
+    Json(result)
 }
