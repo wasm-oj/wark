@@ -105,32 +105,31 @@ pub async fn run_specs(wasm: Box<[u8]>, specs: Vec<JudgeSpec>) -> JudgeResults {
     let mut tasks = Vec::new();
 
     for spec in specs {
-        let check = spec.check_spec().await;
-        if let Err(e) = check {
-            let task = task::spawn_local(async move { (Err(e), Err("".to_string()), None) });
-            tasks.push(task);
-            continue;
-        }
-
-        let input = spec.make_input().await;
-        if let Err(e) = input {
-            let task = task::spawn_local(async move { (Ok(spec), Err(e), None) });
-            tasks.push(task);
-            continue;
-        }
-        let input = input.unwrap();
-        let stdin = input.stdin.clone();
-
-        let (cost_limit, memory_limit) = spec.limits();
         let wasm = wasm.clone();
+        let task = task::spawn(async move {
+            let check = spec.check_spec().await;
+            if let Err(e) = check {
+                return (Err(e), Err("".to_string()), None);
+            }
 
-        let task = task::spawn_blocking(move || {
-            info!("Running judge for spec: {:?}", spec);
-            let result = run::run(wasm, cost_limit, memory_limit, stdin);
-            info!("Judge finished for spec: {:?}", spec);
-            (Ok(spec), Ok(input), Some(result))
+            let input = spec.make_input().await;
+            if let Err(e) = input {
+                return (Ok(spec), Err(e), None);
+            }
+            let input = input.unwrap();
+            let stdin = input.stdin.clone();
+
+            let (cost_limit, memory_limit) = spec.limits();
+
+            let task = task::spawn_blocking(move || {
+                info!("Running judge for spec: {:?}", spec);
+                let result = run::run(wasm, cost_limit, memory_limit, stdin);
+                info!("Judge finished for spec: {:?}", spec);
+                (Ok(spec), Ok(input), Some(result))
+            });
+
+            task.await.unwrap()
         });
-
         tasks.push(task);
     }
 
