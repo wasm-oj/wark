@@ -3,6 +3,7 @@ use crate::server::compress;
 use crate::server::execute;
 use crate::server::judge;
 use crate::server::jwt;
+use rocket::data::ByteUnit;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::Build;
 use rocket::Config;
@@ -35,10 +36,14 @@ fn info() -> Json<ServerInfo> {
 
 /// Get the Rocket instance
 pub fn rocket() -> Rocket<Build> {
+    let json_limit: ByteUnit = "10MB".parse().unwrap();
+    let limits = Config::default().limits.limit("json", json_limit);
+
     let server = rocket::build()
         .configure(Config {
             address: Ipv4Addr::new(0, 0, 0, 0).into(),
             port: server_port(),
+            limits,
             ..Config::default()
         })
         .mount(

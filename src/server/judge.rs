@@ -82,8 +82,12 @@ pub async fn judge(
             let result = run_specs(wasm, submission.specs).await;
             let client = Client::new();
             match client.post(&callback).json(&result).send().await {
-                Ok(_) => {
-                    println!("Callback sent successfully. ({})", &callback);
+                Ok(res) => {
+                    println!(
+                        "Callback sent successfully. {} ({})",
+                        res.status(),
+                        &callback
+                    );
                 }
                 Err(e) => {
                     println!("Error sending callback. {} ({})", e, &callback);
