@@ -1,6 +1,6 @@
+use super::jwt;
 use crate::judger::{Input, JudgeSpec, Judger, Output};
 use crate::run;
-use crate::server::jwt;
 use base64::engine::general_purpose;
 use base64::Engine;
 use reqwest::Client;

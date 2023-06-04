@@ -3,3 +3,4 @@ pub mod core;
 mod execute;
 mod judge;
 mod jwt;
+mod version;

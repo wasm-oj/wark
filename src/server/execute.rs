@@ -1,6 +1,6 @@
+use super::jwt;
 use crate::config::*;
 use crate::run;
-use crate::server::jwt;
 use base64::{engine::general_purpose, Engine as _};
 use rocket::serde::{
     json::{Error, Json},

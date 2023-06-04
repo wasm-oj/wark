@@ -1,8 +1,9 @@
+use super::compress;
+use super::execute;
+use super::judge;
+use super::jwt;
+use super::version;
 use crate::config::*;
-use crate::server::compress;
-use crate::server::execute;
-use crate::server::judge;
-use crate::server::jwt;
 use rocket::data::ByteUnit;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::Build;
@@ -50,6 +51,8 @@ pub fn rocket() -> Rocket<Build> {
             "/",
             routes![index, info, jwt::validate, execute::execute, judge::judge],
         );
+
+    let server = server.attach(version::fairing());
 
     if cfg!(debug_assertions) {
         server
