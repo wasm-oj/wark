@@ -16,7 +16,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN cargo build --release
+RUN cargo build --release --bin wark -F cli
 
 FROM alpine as runtime
 
