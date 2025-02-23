@@ -1,10 +1,11 @@
 use super::jwt;
 use crate::config::*;
 use crate::run;
-use base64::{engine::general_purpose, Engine as _};
+use crate::run::RunRequest;
+use base64::{Engine as _, engine::general_purpose};
 use rocket::serde::{
-    json::{Error, Json},
     Deserialize, Serialize,
+    json::{Error, Json},
 };
 use rocket::tokio::task;
 
@@ -82,12 +83,17 @@ pub async fn execute(
                 stdout: None,
                 stderr: None,
                 message: Some("Invalid wasm".to_string()),
-            })
+            });
         }
     };
 
     let handle = task::spawn_blocking(move || {
-        run::run(wasm, submission.cost, submission.memory, submission.input)
+        run::run(RunRequest {
+            wasm,
+            input: submission.input,
+            budget: submission.cost,
+            mem: submission.memory,
+        })
     });
 
     let result = handle.await.unwrap();

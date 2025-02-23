@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fmt;
 use std::sync::{Arc, Mutex};
 use wasmer::wasmparser::{BlockType as WpTypeOrFuncType, Operator};
@@ -105,11 +104,13 @@ impl ModuleMiddleware for Cost {
     }
 
     /// Transforms a `ModuleInfo` struct in-place. This is called before application on functions begins.
-    fn transform_module_info(&self, module_info: &mut ModuleInfo) {
+    fn transform_module_info(&self, module_info: &mut ModuleInfo) -> Result<(), MiddlewareError> {
         let mut global_indexes = self.global_indexes.lock().unwrap();
 
         if global_indexes.is_some() {
-            panic!("Cost::transform_module_info: Attempting to use a `Cost` middleware from multiple modules.");
+            panic!(
+                "Cost::transform_module_info: Attempting to use a `Cost` middleware from multiple modules."
+            );
         }
 
         // Append a global for remaining points and initialize it.
@@ -143,7 +144,9 @@ impl ModuleMiddleware for Cost {
         *global_indexes = Some(CostGlobalIndexes(
             remaining_points_global_index,
             points_exhausted_global_index,
-        ))
+        ));
+
+        Ok(())
     }
 }
 
@@ -337,10 +340,10 @@ impl FunctionMiddleware for FunctionCost {
             | Operator::I64x2ExtendLowI32x4U
             | Operator::F32x4DemoteF64x2Zero
             | Operator::F64x2PromoteLowF32x4
-            | Operator::I32x4RelaxedTruncSatF32x4S
-            | Operator::I32x4RelaxedTruncSatF32x4U
-            | Operator::I32x4RelaxedTruncSatF64x2SZero
-            | Operator::I32x4RelaxedTruncSatF64x2UZero => 1,
+            | Operator::I32x4RelaxedTruncF32x4S
+            | Operator::I32x4RelaxedTruncF32x4U
+            | Operator::I32x4RelaxedTruncF64x2SZero
+            | Operator::I32x4RelaxedTruncF64x2UZero => 1,
             Operator::I32Add
             | Operator::I32Sub
             | Operator::I64Add

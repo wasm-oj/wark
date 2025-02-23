@@ -1,12 +1,12 @@
 use super::jwt;
 use crate::judger::{Input, JudgeSpec, Judger, Output};
-use crate::run;
-use base64::engine::general_purpose;
+use crate::run::{self, RunRequest};
 use base64::Engine;
+use base64::engine::general_purpose;
 use reqwest::Client;
 use rocket::serde::{
-    json::{Error, Json},
     Deserialize, Serialize,
+    json::{Error, Json},
 };
 use rocket::tokio::task;
 use std::fmt::Debug;
@@ -127,7 +127,12 @@ pub async fn run_specs(wasm: Box<[u8]>, specs: Vec<JudgeSpec>) -> JudgeResults {
 
             let task = task::spawn_blocking(move || {
                 info!("Running judge for spec: {:?}", spec);
-                let result = run::run(wasm, cost_limit, memory_limit, stdin);
+                let result = run::run(RunRequest {
+                    wasm,
+                    budget: cost_limit,
+                    mem: memory_limit,
+                    input: stdin,
+                });
                 info!("Judge finished for spec: {:?}", spec);
                 (Ok(spec), Ok(input), Some(result))
             });

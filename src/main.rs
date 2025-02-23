@@ -5,6 +5,7 @@ use std::{fs, process};
 use std::{io, io::prelude::*};
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+use wark::run::RunRequest;
 use wark::*;
 
 #[rocket::main]
@@ -42,7 +43,14 @@ async fn main() {
                 _ => fs::read_to_string(input).expect("Failed to read input file"),
             };
 
-            let handle = task::spawn_blocking(move || run::run(wasm, cost, mem, input));
+            let handle = task::spawn_blocking(move || {
+                run::run(RunRequest {
+                    wasm,
+                    budget: cost,
+                    mem,
+                    input,
+                })
+            });
 
             let result = match handle.await.unwrap() {
                 Ok(result) => result,

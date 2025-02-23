@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{arg, value_parser, Command};
+use clap::{Command, arg, value_parser};
 
 pub fn cli() -> Command {
     Command::new("wark")

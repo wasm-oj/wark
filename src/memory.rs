@@ -2,8 +2,8 @@
 use std::ptr::NonNull;
 
 use wasmer::{
-    vm::{self, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition, VMTableDefinition},
     MemoryType, Pages, TableType, Tunables,
+    vm::{self, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition, VMTableDefinition},
 };
 
 /// A custom tunables that allows you to set a memory limit.
@@ -99,8 +99,10 @@ impl<T: Tunables> Tunables for LimitingTunables<T> {
     ) -> Result<vm::VMMemory, MemoryError> {
         let adjusted = self.adjust_memory(ty);
         self.validate_memory(&adjusted)?;
-        self.base
-            .create_vm_memory(&adjusted, style, vm_definition_location)
+        unsafe {
+            self.base
+                .create_vm_memory(&adjusted, style, vm_definition_location)
+        }
     }
 
     /// Create a table owned by the host given a [`TableType`] and a [`TableStyle`].
@@ -119,6 +121,6 @@ impl<T: Tunables> Tunables for LimitingTunables<T> {
         style: &TableStyle,
         vm_definition_location: NonNull<VMTableDefinition>,
     ) -> Result<vm::VMTable, String> {
-        self.base.create_vm_table(ty, style, vm_definition_location)
+        unsafe { self.base.create_vm_table(ty, style, vm_definition_location) }
     }
 }

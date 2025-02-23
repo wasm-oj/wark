@@ -1,14 +1,14 @@
 [package]
 name = "wark"
 description = "WebAssembly RunKit."
-version = "0.2.6"
+version = "0.3.0"
 keywords = ["wasm", "wasm-oj"]
 categories = ["command-line-utilities"]
 readme = "README.md"
 license = "MIT"
 homepage = "https://github.com/wasm-oj/wark"
 repository = "https://github.com/wasm-oj/wark"
-edition = "2021"
+edition = "2024"
 build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -16,32 +16,68 @@ build = "build.rs"
 [[bin]]
 name = "wark"
 path = "src/main.rs"
+required-features = ["cli"]
 
 [lib]
 name = "wark"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+cli = [
+    "rocket",
+    "reqwest",
+    "reqwest-middleware",
+    "http-cache-reqwest",
+    "async-compression",
+    "async-trait",
+    "jsonwebtoken",
+    "clap",
+    "base64",
+]
 
 [dependencies]
-async-compression = { version = "0.4.0", features = ["tokio", "gzip"] }
-async-trait = "0.1.68"
-base64 = "0.21.0"
-clap = { version = "4.2.7", features = ["derive", "string"] }
-http-cache-reqwest = { version = "0.9.0", features = ["manager-cacache", "manager-moka"] }
-jsonwebtoken = "8.3.0"
-reqwest = { version = "0.11.18", default-features = false, features = ["rustls", "tokio-rustls", "json"] }
-reqwest-middleware = "0.2.2"
-rocket = { version = "0.5.0-rc.3", features = ["json"] }
-serde = "1.0.163"
-serde_json = "1.0.96"
-sha256 = "1.1.3"
-tracing = "0.1.37"
-tracing-subscriber = "0.3.17"
-wasmer = "3.3.0"
-wasmer-types = "3.3.0"
-wasmer-wasix = "0.4.0"
+getrandom = { version = "0.2.14", features = ["custom"] }
+serde = "1.0.218"
+serde_json = "1.0.139"
+tokio = { version = "1.43.0", default-features = false, features = [
+    "macros",
+    "rt",
+    "rt-multi-thread",
+] }
+wasmer = { version = "5.0.4", default-features = true }
+wasmer-wasix = { version = "0.34.0", default-features = true }
+wasmer-types = { version = "5.0.4" }
+sha256 = { version = "1.5.0" }
+tracing = { version = "0.1.41" }
+tracing-subscriber = { version = "0.3.19" }
+async-compression = { version = "0.4.0", features = [
+    "tokio",
+    "gzip",
+], optional = true }
+async-trait = { version = "0.1.68", optional = true }
+clap = { version = "4.2.7", features = ["derive", "string"], optional = true }
+http-cache-reqwest = { version = "0.9.0", features = [
+    "manager-cacache",
+    "manager-moka",
+], optional = true }
+jsonwebtoken = { version = "8.3.0", optional = true }
+reqwest = { version = "0.11.18", default-features = false, features = [
+    "rustls",
+    "tokio-rustls",
+    "json",
+], optional = true }
+reqwest-middleware = { version = "0.2.2", optional = true }
+rocket = { version = "0.5.0-rc.3", features = ["json"], optional = true }
+base64 = { version = "0.22.1", optional = true }
 
 [build-dependencies]
-vergen = { version = "8.1.3", features = ["build", "cargo", "git", "gitcl", "rustc", "si"] }
-
-[patch.crates-io]
-reflink = { git = "https://github.com/nicokoch/reflink.git" }
+vergen = { version = "8.1.3", features = [
+    "build",
+    "cargo",
+    "git",
+    "gitcl",
+    "rustc",
+    "si",
+] }
