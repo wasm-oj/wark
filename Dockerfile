@@ -4,7 +4,7 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache musl-dev git clang
+    apk add --no-cache musl-dev git llvm19-dev
 
 RUN mkdir /tmp/tempproj && \
     cd /tmp/tempproj && \
